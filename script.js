@@ -18,18 +18,23 @@ const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
 context.configure({device: device, format: canvasFormat});
 
 
-const encoder = device.createCommandEncoder();
-const pass = encoder.beginRenderPass({
-colorAttachments: [{
-    view: context.getCurrentTexture().createView(),
-    loadOp: "clear",
-    clearValue: { r: 0, g: 0.3, b: 0.4, a: 1 },
-    storeOp: "store",
-}]
-});
-pass.end();
-const commandBuffer = encoder.finish();
-device.queue.submit([commandBuffer]);
+// const encoder = device.createCommandEncoder();
+// const pass = encoder.beginRenderPass({
+// colorAttachments: [{
+//     view: context.getCurrentTexture().createView(),
+//     loadOp: "clear",
+//     clearValue: { r: 0, g: 0.3, b: 0.4, a: 1 },
+//     storeOp: "store",
+// }]
+// });
+
+// pass.setPipeline(cellPipeline);
+// pass.setVertexBuffer(0, vertexBuffer);
+// pass.draw(vertices.length / 2); // 6 vertices
+
+// pass.end();
+// const commandBuffer = encoder.finish();
+// device.queue.submit([commandBuffer]);
 
 
 const vertices = new Float32Array([
@@ -64,11 +69,49 @@ const cellShaderModule = device.createShaderModule({
   label: "Cell shader",
   code: `
             @vertex
-            fn vertexMain(return vec4f(0, 0, 0, 1);) -> @builtin(position) vec4f {
-                return vec4f(0, 0, 0, 1);
+            fn vertexMain(@location(0) pos: vec2f) -> @builtin(position) vec4f { // location(0) refererer her til pos i vertexBufferLayout som jeg la til og ga verdien 0
+                return vec4f(pos, 0, 1);
             }
 
+            @fragment
+            fn fragmentMain() -> @location(0) vec4f { // location(0) refererer her til colorattachemnt 0 (siden det kun er en attacmhment)
+                return vec4f(1, 0, 0, 1);
+            }
         `
 });
 
+const cellPipeline = device.createRenderPipeline({
+  label: "Cell pipeline",
+  layout: "auto",
+  vertex: {
+    module: cellShaderModule,
+    entryPoint: "vertexMain",
+    buffers: [vertexBufferLayout]
+  },
+  fragment: {
+    module: cellShaderModule,
+    entryPoint: "fragmentMain",
+    targets: [{
+      format: canvasFormat
+    }]
+  }
+});
 
+
+const encoder = device.createCommandEncoder();
+const pass = encoder.beginRenderPass({
+colorAttachments: [{
+    view: context.getCurrentTexture().createView(),
+    loadOp: "clear",
+    clearValue: { r: 0, g: 0.3, b: 0.4, a: 1 },
+    storeOp: "store",
+}]
+});
+
+pass.setPipeline(cellPipeline);
+pass.setVertexBuffer(0, vertexBuffer);
+pass.draw(vertices.length / 2); // 6 vertices
+
+pass.end();
+const commandBuffer = encoder.finish();
+device.queue.submit([commandBuffer]);
