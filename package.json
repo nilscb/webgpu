@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@math.gl/core": "^4.1.0",
+    "wgpu-matrix": "^3.4.0"
+  }
+}
