@@ -5,7 +5,7 @@ import {
 
 export class Camera {
   target = vec3.create(0, 0, 0);
-  distance = 3;
+  distance = 3; //3;
   scrollDirection = 0;
   wheelTimeout = null;
   lastX = 0;
@@ -28,7 +28,7 @@ export class Camera {
     document.addEventListener("mousedown", this.handleMouseDown);
     document.addEventListener("mousemove", this.handleMouseMove);
     document.addEventListener("mouseup", this.handleMouseUp);
-    //     document.addEventListener("wheel", this.handleMouseWheel);
+    document.addEventListener("wheel", this.handleMouseWheel);
    }
 
    getViewProjectionMatrix() {
@@ -53,7 +53,7 @@ export class Camera {
    }
 
     handleMouseDown = (event) => {
-        console.log("Mouse down event:", event);
+        // console.log("Mouse down event:", event);
         this.isDragging = true;
         this.lastX = event.clientX;
         this.lastY = event.clientY;
@@ -77,5 +77,10 @@ export class Camera {
 
   handleMouseUp = (event) => {
     this.isDragging = false;
+  };
+
+  handleMouseWheel = (event) => {
+    this.distance += event.wheelDelta * 0.005;
+    console.log("Mouse wheel event:", event.wheelDelta);
   };
 }

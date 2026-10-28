@@ -4,6 +4,8 @@
 
 import { Camera } from "./camera.js";
 
+console.log("HELLO")
+
 const canvas = document.querySelector("canvas");
 
 if (!navigator.gpu) {
@@ -30,7 +32,7 @@ const uniformBuffer = device.createBuffer({
   });
 
 
-const vertices = new Float32Array([
+let vertices = new Float32Array([
     //   X,    Y, Z,
         -0.8, -0.8, 0.0, // Triangle 1
         0.8, -0.8, 0.0,
@@ -107,11 +109,24 @@ const pipeline = device.createRenderPipeline({
   }
 });
 
+const fps = 9; // Anything less than 50
+const interval = 1000 / fps; // Milliseconds per frame (33.33ms)
+let lastTimestamp = 0;
 
-let i = 1;
+function myLoop() {
+    const now  = performance.now();
+    const elapsed = now - lastTimestamp;
+
+    if (elapsed > interval) {
+        lastTimestamp = now - (elapsed % interval);
+        // console.log("DO RENDER");
+        render();
+    }
+    requestAnimationFrame(myLoop);
+}
+ 
 
 function render() {
-
     const uniformValues = new Float32Array(16);
     //uniformValues[0] = 0.3; //(i % 2) ? 0.9 : 0.1;
     // uniformValues.set([1,0,0,0, 
@@ -124,10 +139,6 @@ function render() {
     uniformValues.set(mvp, 0);
 
     device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
-
-    i++;
-    //console.log("Frame:", i);
-
 
     const encoder = device.createCommandEncoder();
 
@@ -155,10 +166,13 @@ function render() {
 
     device.queue.submit([commandBuffer]);
 
-    requestAnimationFrame(render);
+    // endre vertex'ene dynamisk før neste render.
+    //const vertices_mod = vertices.map((v,i) => !((i+1) % 3) ? v + 0.01 * (10*Math.random() - 5) : v); // Example of dynamically updating vertices, replace with actual logic as needed
+    const vertices_mod = vertices.map(v => v + 0.01 * (10*Math.random() - 5));
+    device.queue.writeBuffer(vertexBuffer, /*bufferOffset=*/0, vertices_mod);
 }
 
-render();
+myLoop();
 
 
 
